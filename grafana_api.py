@@ -3,11 +3,11 @@ import requests
 from urllib.parse import urlparse
 
 class GrafanaAPI:
-    def __init__(self, url: str, token: str, verify: bool=True, logger_name: str='grafana_api') -> None:
+    def __init__(self, url: str, token: str, verify: bool=True, logger_name: str='grafana_api', log_file_name: str=None) -> None:
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.INFO)
 
-        file_handler = logging.FileHandler(f'{logger_name}.log')
+        file_handler = logging.FileHandler(f'{logger_name}.log' if log_file_name is None else f'{log_file_name}.log')
         file_handler.setLevel(logging.INFO)
 
         console_handler = logging.StreamHandler()
