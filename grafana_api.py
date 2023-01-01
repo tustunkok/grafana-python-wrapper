@@ -1,25 +1,27 @@
 import logging
 import requests
-
-logger = logging.getLogger('grafana_api')
-logger.setLevel(logging.INFO)
-
-file_handler = logging.FileHandler('grafana_api.log')
-file_handler.setLevel(logging.INFO)
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.WARNING)
-
-formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
-
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+from urllib.parse import urlparse
 
 class GrafanaAPI:
     def __init__(self, url: str, token: str, verify: bool=True) -> None:
+        logger = logging.getLogger('grafana_api')
+        logger.setLevel(logging.INFO)
+
+        file_handler = logging.FileHandler('grafana_api.log')
+        file_handler.setLevel(logging.INFO)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
+
+        formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(hostname)s | %(message)s')
+
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        self._logger = logging.LoggerAdapter(logger, {'hostname': urlparse(url).hostname})
         self.url = url
         self._token = token
         self._verify = verify
@@ -27,16 +29,16 @@ class GrafanaAPI:
 
     def _enrich_error_response(self, response: requests.Response, message: str) -> dict:
         if len(response.content) == 0:
-            logger.warning('Empty response returned.')
+            self._logger.warning('Empty response returned.')
             return {'customStatusCode': response.status_code}
 
         if response.status_code != 200:
             response_dict = response.json()
             response_dict['customStatusCode'] = response.status_code
-            logger.warning(f'The request returns a non 200 status code: {response.status_code}')
+            self._logger.warning(f'The request returns a non 200 status code: {response.status_code}')
             return response_dict
 
-        logger.info(message)
+        self._logger.info(message)
         return response.json()
 
 
